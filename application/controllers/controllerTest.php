@@ -1,20 +1,22 @@
 <?php
 
-class controllerTest
+class controllerTest extends controller
 {
     public function  __construct()
     {
-        echo 'YES' . '<br />';
+       // echo 'YES' . '<br />';
     }
 
     public function actionTest () 
     {
-        echo 'test<br />';
+        //echo 'test<br />';
     }
     
     public function actionPage()
     {
-        echo 'page<br />';
+        $this->renderLayout();
+        //app::print_d($_REQUEST);
+        //echo 'page<br />';
     }
 }
 

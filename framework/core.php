@@ -1,69 +1,74 @@
 <?php
 
-class httpException extends Exception
-{
-    protected $httpMessages = 
-            [
-                404 => 'Not Found',
-                403 => 'Forbidden'
-            ];
-    public function __construct(int $code = 0, string $message = "") 
-            {
-                parent::__construct($message, $code);
-            }
-    public function  sendHttpState()
-            {
-                //logger->log($this->getMessage());
-                header('HTTP/1.0'.$this->getCode().''.$this->httpMessages[$this->getCode()]);
-            }
-}
+spl_autoload_register('app::autoload');
 
 class app
 {
     protected $config = false;
-    
+    public $request = false;
+    public $user = false;
+    public $acceptCokie = 0;
+
     private static $instance = false;
-    private function __wakeup(){}
+    private function  __wakeup(){}
     private function  __clone(){}
-    private function  __construct(){}
+    private function  __construct()
+    {
+        self::init();
+        $this->request = new request;
+    }
+    
     public static function  app()
     {
         if (self::$instance === false )
             self::$instance = new self();
         return self::$instance;
+       
     }
     
     public function __get($name)
     {
         return $this->config[$name] ?? false;
-        
     }
 
-        public function start($config)
+    private function init()
     {
-        $this -> config = $config;
-        
-        try {
-            $this->runController(
-                    !empty($_REQUEST['controller']) ? $_REQUEST['controller'] : 'test',
-                    //$_REQUEST['controller'] ?? 'test'
-                    //isset($_REQUEST['controller']) ? $_REQUEST['controller'] : 'test'
-                    !empty($_REQUEST['action']) ? $_REQUEST['action'] : 'page'
-                    );
-        } catch (httpException $e) {
-            $e->sendHttpState();
-            echo $e->getMessage();
-            $this->runController('errors','notfound');
-            
-        }
-           
+        $basePath = get_include_path();
+        $basePath .= PATH_SEPARATOR. CLASSES;
+        set_include_path($basePath);
+    }
+
+    public static function autoload($name)
+    {
+        include $name.'.php';
     }
     
+
+    public function start($config)
+    {
+        $this->config = $config;
+        $this->acceptCookie = 1;
+        //$this->user = new user;
+
+        try {
+                    $this->runController(
+                    !empty($_REQUEST['controller']) ? $_REQUEST['controller'] : 'test',
+                    !empty($_REQUEST['action']) ? $_REQUEST['action'] : 'page');
+        } catch (httpException $e) {
+            $e->sendHttpState();
+            //echo $e->getMessage();
+            $this->runController('errors','notfound');
+        } catch(dbException $e){
+            echo $e->getMessage();die();
+        } catch(Exception $e){
+            echo $e->getMessage();die();
+    }
+    }
     protected function runController($controller, $action)
     {
         $fname = 'controller'.ucfirst(strtolower(str_replace(['.','/'], '', $controller)));
         
-        if (!@include_once $this->patch['controllers'].$fname. '.php'){
+        if (!@include_once $this->patch['controllers'].$fname.'.php'){
             throw new httpException(404, 'Controller file not found');
         }
         if (!class_exists($fname)){
@@ -78,9 +83,7 @@ class app
         
         $controller->$aname();
     }
-
-
-
+   
     public static function print_d($data=[])
     {
         echo '<pre>';
