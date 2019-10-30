@@ -5,19 +5,20 @@ class pgsql {
     public function __construct($config)
     {
         if ( $this -> connection === false ) {
-            $this -> connection - pg_connect(
+            $this -> connection = pg_connect(
                 'host=' . $config['host'] .
-                'port=' . $config['port'] .
-                'dbname=' . $config['db_name'] .
-                'user=' . $config['user'] .
-                'password=' . $config['password']
+                ' port=' . $config['port'] .
+                ' dbname=' . $config['db_name'] .
+                ' user=' . $config['user'] .
+                ' password=' . $config['password']
             );
         }
+        
     }
 
     public function querySimpel($sql)
     {
-        return pg_query($this->connction, $sql);
+        return pg_query($this->connection, $sql);
     }
     public function selectQuery($sql)
     {
@@ -56,15 +57,20 @@ class pgsql {
         $pg->where("/");
     }
 
-    public function where($condition) {
-        $this->condition = $condition;
+    public function where($condition, $params=[]) {
+        if(!empty($params)){
+            foreach($params as $alias => $value){
+                $condition = str_replace($alias,"'". $this->escape($value) ."'", $condition);
+            }
+        }
+        $this-> condition = $condition;
         return $this;
     }
 
     public function insert($table)
     {
         $this->table=$table;
-        $this->queryType =self::TYPE_INSERT;
+        $this-> queryType =self::TYPE_INSERT;
         return $this;
     }
 
@@ -74,24 +80,29 @@ class pgsql {
         $values = '';
         foreach($data as $rowName => $value){
             $fields .= ($fields == ''  ? '' : ',') . $rowName;
-            $values .= ($values == '\'' ? '' : ',\'') . $this->escape($value) . "'";
+            $values .= ($values == '' ? '\'' : ',\'') . $this->escape($value) . "'";
         }
-        $this->$insertFields = '(' . $fields . ')';
-        $this->$insertValues = '(' . $values . ')';
+        $this->insertFields = '(' . $fields . ')';
+        $this->insertValues = '(' . $values . ')';
         return $this;
     }
 
     public function update($table)
     {
         $this->table = $table;
-        $this->quryType = self::TYPE_UPDATE;
+        $this->queryType = self::TYPE_UPDATE;
+       
+        return $this;
+        
+
     }
 
-    public function updateData($table)
+    public function updateData($data)
     {
         foreach($data as $rowName => $value){
             $this->updateData .= ($this->updateData == '' ? '' : ',') . $rowName . "='" . $this->escape($value) . "'";
         }
+         
         return $this;
     }
 
@@ -124,6 +135,7 @@ class pgsql {
                 $sql = $this->getDeleteText();
                 break;
         }
+       
         return $sql;
     }
 
@@ -139,6 +151,7 @@ class pgsql {
         if (!empty($this->condition)) {
             $sql .= 'WHERE ' . $this->condition;
         }
+        
         return $sql;
     }
 

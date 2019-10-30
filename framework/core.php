@@ -16,6 +16,7 @@ class app
     {
         self::init();
         $this->request = new request;
+        
     }
     
     public static function  app()
@@ -48,15 +49,19 @@ class app
     {
         $this->config = $config;
         $this->acceptCookie = 1;
-        //$this->user = new user;
-
+        $this->user = new user;
+        
+        
         try {
                     $this->runController(
-                    !empty($_REQUEST['controller']) ? $_REQUEST['controller'] : 'test',
-                    !empty($_REQUEST['action']) ? $_REQUEST['action'] : 'page');
+                    !empty($_REQUEST['controller']) ? $_REQUEST['controller'] : 'shop',
+                    !empty($_REQUEST['action']) ? $_REQUEST['action'] : 'shop',
+                    $_REQUEST['id']
+                );
+                    
         } catch (httpException $e) {
             $e->sendHttpState();
-            //echo $e->getMessage();
+            echo $e->getMessage();
             $this->runController('errors','notfound');
         } catch(dbException $e){
             echo $e->getMessage();die();
@@ -64,11 +69,11 @@ class app
             echo $e->getMessage();die();
     }
     }
-    protected function runController($controller, $action)
+    protected function runController($controller, $action, $id='')
     {
         $fname = 'controller'.ucfirst(strtolower(str_replace(['.','/'], '', $controller)));
         
-        if (!@include_once $this->patch['controllers'].$fname.'.php'){
+        if (!@include_once $this->path['controllers'].$fname.'.php'){
             throw new httpException(404, 'Controller file not found');
         }
         if (!class_exists($fname)){
@@ -80,8 +85,8 @@ class app
         if (!method_exists($controller, $aname)){
             throw new httpException(404, 'Action not found');
         }
-        
-        $controller->$aname();
+       
+        $controller->$aname($id);
     }
    
     public static function print_d($data=[])

@@ -1,11 +1,33 @@
 <?php
 
-class controllerShop
+class controllerShop extends controller
 {
-    public function actionItem(){
-        for($i = 0; $i<10; $i++){
-            echo $i . '<br />';
-        }
+    protected $layout='shop';
+    protected $templateDir = 'templates';
+    public function actionShop()
+    {
+        $params = 
+        [
+            'lo_category' => $this->menuTpl(),
+            'lo_product'=>$this->ProductTpl(),
+        ];
+        echo  $this->renderLayout($params);
+    }
+
+    protected function menuTpl()
+    {
+        return $this->renderTemplate('category', 
+        [
+            'categories'=>$this->getModel('category')-> categoryList()
+        ]);
+    }
+
+    protected function ProductTpl()
+    {
+        return $this->renderTemplate('product', 
+        [
+            'products'=>$this->getModel('product')-> getLatesProduct(6)
+        ]);
+        
     }
 }
-

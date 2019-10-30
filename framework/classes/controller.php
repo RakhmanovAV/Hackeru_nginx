@@ -5,7 +5,7 @@ abstract class controller
     private $models = [];
     protected $layout = 'main';
     protected $templateDir = '';
-   
+    
     public function __construct()
     {
 
@@ -14,31 +14,32 @@ abstract class controller
     protected function getModel($name)
     {
         if(!isset($this->models[$name])){
-            if(!@include app::app()->paths['models'] . $name . '.php'){
+            if(!@include app::app()->path['models'] . $name . '.php'){
                 throw new dbException('Undefined model');
             }
-            $this->models[$name] = new $name;
+            $this->models[$name] = new $name();
         }
         return $this->models[$name];
     }
 
-    protected function renderLayout($params = [])
+    protected function renderLayout($params=[])
     {
-            foreach ($params as $var => $value){
-                $$name = $value;
-            }
+            foreach ($params as $name => $value){
+               $$name = $value;
+           }
             ob_start();
-            include app::app()->paths['layouts'] . $this->layouts . '.php';
+            include app::app()->path['layouts'] . $this->layout . '.php';
             return ob_get_clean();
+            
     }
 
-    protected function renderTemblate()
+    protected function renderTemplate($__tplname, $params = [])
     {
             foreach ($params as $var => $value){
                 $$var = $value;
             }
             ob_start();
-            include app::app()->paths['views'] . $this->templateDir . DS . $__tplname . '.php';
+            include app::app()->path['views'] . $this->templateDir . DS . $__tplname . '.php';
             return ob_get_clean();
     }
 
