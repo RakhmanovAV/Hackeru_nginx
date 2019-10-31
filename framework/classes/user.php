@@ -182,4 +182,11 @@ class user
        $_SESSION = [];
        setcookie('token', '',time()-1, '/');
     }
+
+    public function chekAdmin()
+    {
+        
+    }
+
+
 }

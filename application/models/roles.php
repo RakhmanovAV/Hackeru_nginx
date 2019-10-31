@@ -51,7 +51,6 @@ class roles extends model
     public function saveRole($role)
     {
         if(isset($role['id']) && $role['id']){
-            app::print_d(1);die;
             return $this->updateRole($role);
 
         }else{
